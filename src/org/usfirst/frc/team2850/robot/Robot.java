@@ -8,10 +8,6 @@ import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.PIDController;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,17 +32,19 @@ public class Robot extends IterativeRobot {
 	public static Encoder rightEncoder;
 	
     public static boolean high;
-    //how many pulses per rotation? how many feet per rotation? (gears, tires, CIM speed)
+    //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
     public static double DIST_PER_PULSE = .2;
    	
-    public static double Kp = .005;
-    public static double Ki = .005;
-    public static double Kd = .005;
+    public static double Kp = .005; //proportional gain
+    public static double Ki = .005; //integral gain
+    public static double Kd = .005; //derivative gain
     
-   	public static PIDController linearDriveLeft = new PIDController(Kp, Ki, Kd, leftEncoder, leftDrive1);
-   	public static PIDController linearDriveRight = new PIDController(Kp, Ki, Kd, rightEncoder, rightDrive1);
+    public static double PID_SETPOINT = 10.0; //10 feet
+    public static double TARGET_THRESHOLD = .25; //within .25 ft is ok
+    
+   	public static PID linearDriveLeft = new PID(Kp, Ki, Kd, PID_SETPOINT, leftEncoder.getDistance());
+   	public static PID linearDriveRight = new PID(Kp, Ki, Kd, PID_SETPOINT, rightEncoder.getDistance());
    	
-   	public static double PID_SETPOINT = 10.0; //10 feet
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -77,12 +75,7 @@ public class Robot extends IterativeRobot {
     	rightEncoder.setReverseDirection(true);
     	rightEncoder.setSamplesToAverage(7);
     	
-    	linearDriveLeft.setAbsoluteTolerance(.5);
-    	linearDriveRight.setAbsoluteTolerance(.5);
-    	linearDriveLeft.setOutputRange(-1, 1);
-    	linearDriveLeft.setSetpoint(PID_SETPOINT);
-    	linearDriveRight.setOutputRange(-1, 1);
-    	linearDriveRight.setSetpoint(PID_SETPOINT);
+    	
     }
     
 	/**
@@ -97,23 +90,33 @@ public class Robot extends IterativeRobot {
     
     
     public void autonomousInit() {
-    	linearDriveLeft.enable();
-    	linearDriveRight.enable();
+    	
     }
 
     /**
      * This function is called periodically during autonomous
      */
     public void autonomousPeriodic() {
-    	//setting other drive motors to PID outputs
-    	leftDrive2.set(linearDriveLeft.get());
-    	rightDrive2.set(linearDriveRight.get());
-    	leftDrive3.set(linearDriveLeft.get());
-    	rightDrive3.set(linearDriveRight.get());
-    	if(linearDriveRight.onTarget())
-    		linearDriveRight.disable();
-    	if(linearDriveLeft.onTarget())
-    		linearDriveLeft.disable();
+    	leftDrive1.set(linearDriveLeft.compute(leftEncoder.getDistance()));
+    	rightDrive1.set(linearDriveRight.compute(rightEncoder.getDistance()));
+    	leftDrive2.set(linearDriveLeft.compute(leftEncoder.getDistance()));
+    	rightDrive2.set(linearDriveRight.compute(rightEncoder.getDistance()));
+    	leftDrive3.set(linearDriveLeft.compute(leftEncoder.getDistance()));
+    	rightDrive3.set(linearDriveRight.compute(rightEncoder.getDistance()));
+    	
+    	
+    	if(Math.abs(linearDriveRight.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
+    	{
+        	rightDrive1.set(0);
+        	rightDrive2.set(0);
+        	rightDrive3.set(0);
+    	}
+    	if(Math.abs(linearDriveLeft.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
+    	{
+    		leftDrive1.set(0);
+        	leftDrive2.set(0);
+        	leftDrive3.set(0);
+    	}
     }
 
     /**
