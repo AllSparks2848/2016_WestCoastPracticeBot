@@ -16,7 +16,7 @@ public class Shooter {
 	double p = SmartDashboard.getNumber("DB/Slider 0", 0.0);
 	double i = SmartDashboard.getNumber("DB/Slider 1", 0.0);
 	double d = SmartDashboard.getNumber("DB/Slider 2", 0.0);
-	double target = 1000; //feet per sec
+	double target = 60; //feet per sec
 	
 	
 	public double instantVelocity;
