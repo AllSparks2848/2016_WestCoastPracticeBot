@@ -1,18 +1,23 @@
-package org.usfirst.frc.team2850.robot;
+package org.usfirst.frc.team2850.subsystems;
+
+import org.usfirst.frc.team2850.robot.Robot;
+import org.usfirst.frc.team2850.util.PID;
 
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Shooter {
 	private static Spark shooterMotor;
 	private static Encoder shooterEncoder;
+	public static PID shooterpid;
 	
-	Robot robot =new Robot();
-	double p = .004;
-	double i = .002;
-	double d = .000;
-	double target = 10; //in feet
-	PID shooterpid = new PID(p,i,d, target, 0);
+	Robot robot = new Robot();
+	double p = SmartDashboard.getNumber("DB/Slider 0", 0.0);
+	double i = SmartDashboard.getNumber("DB/Slider 1", 0.0);
+	double d = SmartDashboard.getNumber("DB/Slider 2", 0.0);
+	double target = 1000; //feet per sec
+	
 	
 	public double instantVelocity;
 	
@@ -21,9 +26,13 @@ public class Shooter {
 		Shooter.shooterMotor = shooterMotor;
 		Shooter.shooterEncoder = shooterEncoder;
 		
-		shooterEncoder.setDistancePerPulse(.2); //encoder ticks, gearing to get fps tangential speed
+		shooterEncoder.setDistancePerPulse(4*3.142/3); //775 at 3:1 (encoder after gearing), 4069 encoder ticks, 2in wheel
 	}
-	
+	public void shoot()
+	{
+		shooterMotor.set(1.0);
+		instantVelocity = shooterEncoder.getRate();
+	}
 	public void shootPID()
 	{
 		shooterMotor.set(shooterpid.compute(shooterEncoder.getRate()));

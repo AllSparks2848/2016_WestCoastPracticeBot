@@ -1,9 +1,12 @@
 
 package org.usfirst.frc.team2850.robot;
 
+import org.usfirst.frc.team2850.subsystems.Shooter;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Spark;
@@ -22,6 +25,8 @@ public class Robot extends IterativeRobot {
 	public static RobotDrive drivetrain;
 	public static RobotDrive drivetrain2;
 	
+	public static PowerDistributionPanel pdp;
+	
 	public static Spark leftDrive1;
 	public static Spark rightDrive1;
 	public static Spark leftDrive2;
@@ -33,9 +38,10 @@ public class Robot extends IterativeRobot {
 //	public static Encoder leftEncoder;
 //	public static Encoder rightEncoder;
 	
-	//public static Spark shooterMotor;                //added V1.0
-	//public static Encoder shooterEncoder;
-	//public static Shooter shooter;
+	public static Spark shooterMotor;                //added V1.0
+	public static Encoder shooterEncoder;
+	public static Shooter shooter;
+	public double shooterCurrent = 0;
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -70,9 +76,9 @@ public class Robot extends IterativeRobot {
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
        
-    	//shooterMotor = new Spark(6);
-    	//shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
-    	//shooter = new Shooter(shooterMotor, shooterEncoder);
+    	shooterMotor = new Spark(6);
+    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
+    	shooter = new Shooter(shooterMotor, shooterEncoder);
     	
     	
 //    	leftEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
@@ -132,12 +138,12 @@ public class Robot extends IterativeRobot {
     	
     	
     	//SHOOTER SECTION
-    	//if(xbox1.getRawButton(0))
-    		//shooterMotor.set(1.0);
+    	if(xbox1.getRawButton(0))
+    		shooter.shoot();
     	
-//    	if(xbox1.getRawButton(1))
-//    		shooter.shootPID();
-        
+    	if(xbox1.getRawButton(1))
+    		shooter.shootPID();
+        shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
     }
     
     /**
