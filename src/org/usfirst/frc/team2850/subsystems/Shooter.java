@@ -32,6 +32,7 @@ public class Shooter {
 	{
 		shooterMotor.set(1.0);
 		instantVelocity = shooterEncoder.getRate();
+		SmartDashboard.putNumber("Speed", instantVelocity);
 	}
 	public void shootPID()
 	{

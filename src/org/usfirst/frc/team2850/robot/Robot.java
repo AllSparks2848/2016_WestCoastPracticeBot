@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
 
 /**
@@ -144,6 +145,7 @@ public class Robot extends IterativeRobot {
     	if(xbox1.getRawButton(1))
     		shooter.shootPID();
         shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
+        SmartDashboard.putNumber("Amps", shooterCurrent);
     }
     
     /**
