@@ -13,10 +13,10 @@ public class Shooter {
 	public static PID shooterpid;
 	
 	Robot robot = new Robot();
-	double p = SmartDashboard.getNumber("DB/Slider 0", 0.0);
-	double i = SmartDashboard.getNumber("DB/Slider 1", 0.0);
-	double d = SmartDashboard.getNumber("DB/Slider 2", 0.0);
-	double target = 60; //feet per sec
+	double p = SmartDashboard.getNumber("P", 0.004);
+	double i = SmartDashboard.getNumber("I", 0.002);
+	double d = SmartDashboard.getNumber("D", 0.0);
+	double target = SmartDashboard.getNumber("targetVelocity", 60.0); //feet per sec
 	
 	
 	public double instantVelocity;
