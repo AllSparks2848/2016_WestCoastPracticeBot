@@ -13,8 +13,8 @@ public class PID {
 	private long lastnanotime;
 	
 	private double i = 0;
-	private double min = -100;
-	private double max = 100;
+	private double min = -1;
+	private double max = 1;
 	private double mini = -100;
 	private double maxi = 100;
 	private double lastinput = 0;
@@ -40,7 +40,7 @@ public class PID {
 	}
 	
 	public double compute(double input) {
-		double error = 0;
+		double error;
 		error = target-input; //calculate error of the system
 		
 		double p = pterm*error; //get proportional term of error
@@ -61,6 +61,7 @@ public class PID {
 		if(output < min) output = min; // clamps output
 		if(output > max) output = max;
 		
+		System.out.println(output);
 		return output;
 	}
 	

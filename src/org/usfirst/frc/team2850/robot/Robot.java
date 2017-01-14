@@ -1,9 +1,10 @@
 
 package org.usfirst.frc.team2850.robot;
 
-import org.usfirst.frc.team2850.util.*;
-
 import org.usfirst.frc.team2850.subsystems.Shooter;
+
+import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.command.PIDSubsystem;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -45,8 +46,10 @@ public class Robot extends IterativeRobot {
 	public static double pDrive;
 	public static double iDrive;
 	public static double dDrive;
-	public static double target;
-	public static PID pidDrive;
+	
+	public static int timeX;
+	
+	PIDController driveController;
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -81,14 +84,25 @@ public class Robot extends IterativeRobot {
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
     	
-    	pDrive = SmartDashboard.getNumber("P",0);
-    	iDrive = SmartDashboard.getNumber("I",0);
-    	dDrive = SmartDashboard.getNumber("D",0);
-    	target = SmartDashboard.getNumber("targetVelocity",0);
-    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
+    	timeX = 0;
+    	
+//    	pDrive = SmartDashboard.getNumber("P",0);
+//    	iDrive = SmartDashboard.getNumber("I",0);
+//    	dDrive = SmartDashboard.getNumber("D",0);
+//    	target = SmartDashboard.getNumber("targetVelocity",0);
+//    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
+    	
     	
     	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
     	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
+    	leftEncoder.setDistancePerPulse(.2);
+    	
+    	pDrive = .1;
+    	iDrive = 0;
+    	dDrive = 0;
+    	driveController = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
+    	driveController.setSetpoint(10000.0);
+    	driveController.setOutputRange(-1, 1);
     	
 //    	leftEncoder.setMaxPeriod(.1);
 //    	leftEncoder.setMinRate(10);
@@ -107,25 +121,43 @@ public class Robot extends IterativeRobot {
     }
 
     public void autonomousPeriodic() {
-    	leftDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
-    	rightDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
-    	leftDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
-    	rightDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
-    	leftDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
-    	rightDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
-   
-    	
-    	if(pidDrive.onTarget())
-    	{
-        	rightDrive1.set(0);
-        	rightDrive2.set(0);
-        	rightDrive3.set(0);
- 
-    		leftDrive1.set(0);
-        	leftDrive2.set(0);
-        	leftDrive3.set(0);
+    	timeX++;
+    	if (timeX == 1) {
+    		driveController.enable();
     	}
-    	SmartDashboard.putNumber("Speed",pidDrive.getError());
+//    	leftDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
+//    	rightDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
+//    	leftDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
+//    	rightDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
+//    	leftDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
+//    	rightDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
+//    	
+//
+//    	if(pidDrive.onTarget())
+//    	{
+//        	rightDrive1.set(0);
+//        	rightDrive2.set(0);
+//        	rightDrive3.set(0);
+// 
+//    		leftDrive1.set(0);
+//        	leftDrive2.set(0);
+//        	leftDrive3.set(0);
+//    	}
+//    	SmartDashboard.putNumber("Speed",pidDrive.getError());
+    	
+    	
+    	
+    	leftDrive2.set(driveController.get());
+    	leftDrive3.set(driveController.get());
+    	rightDrive1.set(driveController.get());
+    	rightDrive2.set(driveController.get());
+    	rightDrive3.set(driveController.get());
+    	
+    	System.out.println("\nRUN TIME #" + timeX + ":");
+    	System.out.println("Error: " + driveController.getError());
+    	System.out.println("Current PID Result: " + driveController.get());
+    	System.out.println("Encoder Value: " + leftEncoder.getDistance());
+    
     }
 
     public void teleopPeriodic() {
