@@ -95,11 +95,11 @@ public class Robot extends IterativeRobot {
     	
     	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
     	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
-    	leftEncoder.setDistancePerPulse(.2);
+    	leftEncoder.setDistancePerPulse(5.03/256);
     	
-    	pDrive = .1;
-    	iDrive = 0;
-    	dDrive = 0;
+    	pDrive = SmartDashboard.getNumber("P",0);
+    	iDrive =  SmartDashboard.getNumber("I",0);
+    	dDrive =  SmartDashboard.getNumber("D",0);
     	driveController = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
     	driveController.setSetpoint(10000.0);
     	driveController.setOutputRange(-1, 1);
@@ -117,61 +117,57 @@ public class Robot extends IterativeRobot {
     }
     
     public void autonomousInit() {
-    	
+    	leftEncoder.reset();
     }
 
     public void autonomousPeriodic() {
-    	timeX++;
-    	if (timeX == 1) {
-    		driveController.enable();
+    	if (leftEncoder.getDistance() < 12.57) {
+    		leftDrive1.set(.25);
+    		leftDrive2.set(.25);
+        	leftDrive3.set(.25);
+        	rightDrive1.set(.25);
+        	rightDrive2.set(.25);
+        	rightDrive3.set(.25);
     	}
-//    	leftDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
-//    	rightDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
-//    	leftDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
-//    	rightDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
-//    	leftDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
-//    	rightDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
+    	else {
+    		leftDrive1.set(0);
+    		leftDrive2.set(0);
+        	leftDrive3.set(0);
+        	rightDrive1.set(0);
+        	rightDrive2.set(0);
+        	rightDrive3.set(0);
+    	}
+    	System.out.println("Encoder Distance: " + leftEncoder.getDistance());
+//    	timeX++;
+//    	if (timeX == 1) {
+//    		driveController.enable();
+//    	}  	
 //    	
+//    	leftDrive2.set(driveController.get());
+//    	leftDrive3.set(driveController.get());
+//    	rightDrive1.set(driveController.get());
+//    	rightDrive2.set(driveController.get());
+//    	rightDrive3.set(driveController.get());
+//    	
+//    	System.out.println("\nRUN TIME #" + timeX + ":");
+//    	System.out.println("Error: " + driveController.getError());
+//    	System.out.println("Current PID Result: " + driveController.get());
+//    	System.out.println("Encoder Value: " + leftEncoder.getDistance());
+//    
+//    }
 //
-//    	if(pidDrive.onTarget())
-//    	{
-//        	rightDrive1.set(0);
-//        	rightDrive2.set(0);
-//        	rightDrive3.set(0);
-// 
-//    		leftDrive1.set(0);
-//        	leftDrive2.set(0);
-//        	leftDrive3.set(0);
+//    public void teleopPeriodic() {
+//    	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
+//    	drivetrain2.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
+//    	if(xbox1.getRawButton(5)){
+//    		high=false;
 //    	}
-//    	SmartDashboard.putNumber("Speed",pidDrive.getError());
-    	
-    	
-    	
-    	leftDrive2.set(driveController.get());
-    	leftDrive3.set(driveController.get());
-    	rightDrive1.set(driveController.get());
-    	rightDrive2.set(driveController.get());
-    	rightDrive3.set(driveController.get());
-    	
-    	System.out.println("\nRUN TIME #" + timeX + ":");
-    	System.out.println("Error: " + driveController.getError());
-    	System.out.println("Current PID Result: " + driveController.get());
-    	System.out.println("Encoder Value: " + leftEncoder.getDistance());
-    
-    }
-
-    public void teleopPeriodic() {
-    	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
-    	drivetrain2.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
-    	if(xbox1.getRawButton(5)){
-    		high=false;
-    	}
-    	
-    	if(xbox1.getRawButton(6)){
-    		high=true;
-    	}
-    	
-    	driveshifter.set(high);
+//    	
+//    	if(xbox1.getRawButton(6)){
+//    		high=true;
+//    	}
+//    	
+//    	driveshifter.set(high);
     }
     
     /**
