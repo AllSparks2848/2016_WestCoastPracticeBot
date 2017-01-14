@@ -17,6 +17,7 @@ public class PID {
 	private double mini = -100;
 	private double maxi = 100;
 	private double lastinput = 0;
+	private double error;
 	
 	public PID(double pterm, double iterm, double dterm, double target, double startingval) {
 		this.pterm = pterm; //initializes parameters
@@ -56,7 +57,7 @@ public class PID {
 		double output = p+i-d;
 		if(output < min) output = min; // clamps output
 		if(output > max) output = max;
-		
+		this.error = error;
 		return output;
 	}
 	
@@ -74,6 +75,12 @@ public class PID {
 	public void setITermBounds(double mini, double maxi) { // sets bounds for integral windup clamp
 		this.mini = mini;
 		this.maxi = maxi;
+	}
+	public boolean onTarget(){
+		if(error<.1){
+			return true;
+		}
+		return false;
 	}
 
 }

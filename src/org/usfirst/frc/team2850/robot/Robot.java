@@ -88,6 +88,8 @@ public class Robot extends IterativeRobot {
     	
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
+    	driveTrainPID = new PID(shooterP,shooterI,shooterD,target,0);
+    	
        
 //    	shooterMotor = new Spark(6);
 //    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
@@ -110,8 +112,7 @@ public class Robot extends IterativeRobot {
     }
     
     public void autonomousInit() {
-    	 driveTrainPID = new PID(shooterP,shooterI,shooterD,target,0);
-    	
+    	 
     	
     }
 
@@ -122,6 +123,18 @@ public class Robot extends IterativeRobot {
     	rightDrive1.set(driveTrainPID.compute(rightEncoder.getRate()));
     	rightDrive2.set(driveTrainPID.compute(rightEncoder.getRate()));
     	rightDrive3.set(driveTrainPID.compute(rightEncoder.getRate()));
+    	
+    	
+    	if(driveTrainPID.onTarget()){
+    		rightDrive1.set(0);
+    		rightDrive2.set(0);
+    		rightDrive3.set(0);
+    		leftDrive1.set(0);
+    		leftDrive2.set(0);
+    		leftDrive3.set(0);
+    		
+    	}
+    	
     }
 
     public void teleopPeriodic() {
@@ -138,14 +151,6 @@ public class Robot extends IterativeRobot {
     	driveshifter.set(high);
     	
     	
-    	//SHOOTER SECTION
-//    	if(xbox1.getRawButton(0))
-//    		shooter.shoot();
-//    	
-//    	if(xbox1.getRawButton(1))
-//    		shooter.shootPID();
-//        shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
-        SmartDashboard.putNumber("Amps", shooterCurrent);
     }
     
     /**
