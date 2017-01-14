@@ -7,6 +7,7 @@ public class PID {
 	private double pterm;
 	private double iterm;
 	private double dterm;
+	private double error;
 	
 	private long nanotime;
 	private long lastnanotime;
@@ -39,8 +40,11 @@ public class PID {
 	}
 	
 	public double compute(double input) {
-		double error = target-input; //calculate error of the system	
+		double error = 0;
+		error = target-input; //calculate error of the system
+		
 		double p = pterm*error; //get proportional term of error
+		this.error = error;
 		
 		nanotime = System.nanoTime();
 		double deltatime = (nanotime-lastnanotime)/1000000000.0; //calculate delta time in nano seconds and divide by a billion to get seconds
@@ -74,6 +78,14 @@ public class PID {
 	public void setITermBounds(double mini, double maxi) { // sets bounds for integral windup clamp
 		this.mini = mini;
 		this.maxi = maxi;
+	}
+	
+	public boolean onTarget() {
+		if (error < .1) {
+			System.out.println();
+			return true;
+		}
+		return false;
 	}
 
 }

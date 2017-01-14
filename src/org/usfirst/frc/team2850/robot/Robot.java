@@ -1,6 +1,8 @@
 
 package org.usfirst.frc.team2850.robot;
 
+import org.usfirst.frc.team2850.util.*;
+
 import org.usfirst.frc.team2850.subsystems.Shooter;
 
 import edu.wpi.first.wpilibj.Compressor;
@@ -36,13 +38,15 @@ public class Robot extends IterativeRobot {
 	public static Spark rightDrive3;
 	public static Compressor compressor;
 	public static Solenoid driveshifter;
-//	public static Encoder leftEncoder;
-//	public static Encoder rightEncoder;
 	
-	public static Spark shooterMotor;                //added V1.0
-	public static Encoder shooterEncoder;
-	public static Shooter shooter;
-	public double shooterCurrent = 0;
+	public static Encoder leftEncoder;
+	public static Encoder rightEncoder;
+	
+	public static double pDrive;
+	public static double iDrive;
+	public static double dDrive;
+	public static double target;
+	public static PID pidDrive;
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -76,14 +80,15 @@ public class Robot extends IterativeRobot {
     	
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
-       
-    	shooterMotor = new Spark(6);
-    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
-    	shooter = new Shooter(shooterMotor, shooterEncoder);
     	
+    	pDrive = 0;
+    	iDrive = 0;
+    	dDrive = 0;
+    	target = 0;
+    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
     	
-//    	leftEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
-//    	rightEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
+    	leftEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X);
+    	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
     	
 //    	leftEncoder.setMaxPeriod(.1);
 //    	leftEncoder.setMinRate(10);
@@ -102,26 +107,24 @@ public class Robot extends IterativeRobot {
     }
 
     public void autonomousPeriodic() {
-//    	leftDrive1.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive1.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	leftDrive2.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive2.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	leftDrive3.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive3.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	
-//    	
-//    	if(Math.abs(linearDriveRight.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
-//    	{
-//        	rightDrive1.set(0);
-//        	rightDrive2.set(0);
-//        	rightDrive3.set(0);
-//    	}
-//    	if(Math.abs(linearDriveLeft.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
-//    	{
-//    		leftDrive1.set(0);
-//        	leftDrive2.set(0);
-//        	leftDrive3.set(0);
-//    	}
+    	leftDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
+    	rightDrive1.set(pidDrive.compute(rightEncoder.getDistance()));
+    	leftDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
+    	rightDrive2.set(pidDrive.compute(rightEncoder.getDistance()));
+    	leftDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
+    	rightDrive3.set(pidDrive.compute(rightEncoder.getDistance()));
+    	
+    	
+    	if(pidDrive.onTarget())
+    	{
+        	rightDrive1.set(0);
+        	rightDrive2.set(0);
+        	rightDrive3.set(0);
+ 
+    		leftDrive1.set(0);
+        	leftDrive2.set(0);
+        	leftDrive3.set(0);
+    	}
     }
 
     public void teleopPeriodic() {
@@ -136,16 +139,6 @@ public class Robot extends IterativeRobot {
     	}
     	
     	driveshifter.set(high);
-    	
-    	
-    	//SHOOTER SECTION
-    	if(xbox1.getRawButton(0))
-    		shooter.shoot();
-    	
-    	if(xbox1.getRawButton(1))
-    		shooter.shootPID();
-        shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
-        SmartDashboard.putNumber("Amps", shooterCurrent);
     }
     
     /**
