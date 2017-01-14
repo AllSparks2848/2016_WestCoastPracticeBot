@@ -87,5 +87,9 @@ public class PID {
 		}
 		return false;
 	}
+	public double getError()
+	{
+		return error;
+	}
 
 }

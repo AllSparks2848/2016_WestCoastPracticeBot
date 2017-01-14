@@ -81,13 +81,13 @@ public class Robot extends IterativeRobot {
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
     	
-    	pDrive = 0;
-    	iDrive = 0;
-    	dDrive = 0;
-    	target = 0;
+    	pDrive = SmartDashboard.getNumber("P",0);
+    	iDrive = SmartDashboard.getNumber("I",0);
+    	dDrive = SmartDashboard.getNumber("D",0);
+    	target = SmartDashboard.getNumber("targetVelocity",0);
     	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
     	
-    	leftEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X);
+    	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
     	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
     	
 //    	leftEncoder.setMaxPeriod(.1);
@@ -108,12 +108,12 @@ public class Robot extends IterativeRobot {
 
     public void autonomousPeriodic() {
     	leftDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
-    	rightDrive1.set(pidDrive.compute(rightEncoder.getDistance()));
+    	rightDrive1.set(pidDrive.compute(leftEncoder.getDistance()));
     	leftDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
-    	rightDrive2.set(pidDrive.compute(rightEncoder.getDistance()));
+    	rightDrive2.set(pidDrive.compute(leftEncoder.getDistance()));
     	leftDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
-    	rightDrive3.set(pidDrive.compute(rightEncoder.getDistance()));
-    	
+    	rightDrive3.set(pidDrive.compute(leftEncoder.getDistance()));
+   
     	
     	if(pidDrive.onTarget())
     	{
@@ -125,6 +125,7 @@ public class Robot extends IterativeRobot {
         	leftDrive2.set(0);
         	leftDrive3.set(0);
     	}
+    	SmartDashboard.putNumber("Speed",pidDrive.getError());
     }
 
     public void teleopPeriodic() {
