@@ -2,6 +2,7 @@
 package org.usfirst.frc.team2850.robot;
 
 import org.usfirst.frc.team2850.subsystems.Shooter;
+import org.usfirst.frc.team2850.util.PID;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -36,13 +37,20 @@ public class Robot extends IterativeRobot {
 	public static Spark rightDrive3;
 	public static Compressor compressor;
 	public static Solenoid driveshifter;
-//	public static Encoder leftEncoder;
-//	public static Encoder rightEncoder;
+	public static Encoder leftEncoder;
+	public static Encoder rightEncoder;
 	
 	public static Spark shooterMotor;                //added V1.0
 	public static Encoder shooterEncoder;
 	public static Shooter shooter;
 	public double shooterCurrent = 0;
+	public double shooterP = .005;
+	public double shooterI = .005;
+	public double shooterD = .005;
+	public double target = 10;
+	public PID driveTrainPID;
+	
+	
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -71,16 +79,20 @@ public class Robot extends IterativeRobot {
     	rightDrive2=new Spark(4);
     	rightDrive3=new Spark(5);
     	
+    	leftEncoder = new Encoder(2,3,false, Encoder.EncodingType.k4X);
+    	rightEncoder = new Encoder(4,5,false, Encoder.EncodingType.k4X);
+    	
+    	
     	drivetrain= new RobotDrive(leftDrive1, leftDrive2, rightDrive1, rightDrive2);
     	drivetrain2= new RobotDrive(leftDrive3, rightDrive3);
     	
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
        
-    	shooterMotor = new Spark(6);
-    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
-    	shooter = new Shooter(shooterMotor, shooterEncoder);
-    	
+//    	shooterMotor = new Spark(6);
+//    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
+//    	shooter = new Shooter(shooterMotor, shooterEncoder);
+//    	
     	
 //    	leftEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
 //    	rightEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
@@ -98,30 +110,18 @@ public class Robot extends IterativeRobot {
     }
     
     public void autonomousInit() {
+    	 driveTrainPID = new PID(shooterP,shooterI,shooterD,target,0);
+    	
     	
     }
 
     public void autonomousPeriodic() {
-//    	leftDrive1.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive1.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	leftDrive2.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive2.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	leftDrive3.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive3.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	
-//    	
-//    	if(Math.abs(linearDriveRight.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
-//    	{
-//        	rightDrive1.set(0);
-//        	rightDrive2.set(0);
-//        	rightDrive3.set(0);
-//    	}
-//    	if(Math.abs(linearDriveLeft.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
-//    	{
-//    		leftDrive1.set(0);
-//        	leftDrive2.set(0);
-//        	leftDrive3.set(0);
-//    	}
+    	leftDrive1.set(driveTrainPID.compute(leftEncoder.getRate()));
+    	leftDrive2.set(driveTrainPID.compute(leftEncoder.getRate()));
+    	leftDrive3.set(driveTrainPID.compute(leftEncoder.getRate()));
+    	rightDrive1.set(driveTrainPID.compute(rightEncoder.getRate()));
+    	rightDrive2.set(driveTrainPID.compute(rightEncoder.getRate()));
+    	rightDrive3.set(driveTrainPID.compute(rightEncoder.getRate()));
     }
 
     public void teleopPeriodic() {
@@ -139,12 +139,12 @@ public class Robot extends IterativeRobot {
     	
     	
     	//SHOOTER SECTION
-    	if(xbox1.getRawButton(0))
-    		shooter.shoot();
-    	
-    	if(xbox1.getRawButton(1))
-    		shooter.shootPID();
-        shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
+//    	if(xbox1.getRawButton(0))
+//    		shooter.shoot();
+//    	
+//    	if(xbox1.getRawButton(1))
+//    		shooter.shootPID();
+//        shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
         SmartDashboard.putNumber("Amps", shooterCurrent);
     }
     
