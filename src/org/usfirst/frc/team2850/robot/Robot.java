@@ -3,6 +3,9 @@ package org.usfirst.frc.team2850.robot;
 
 import org.usfirst.frc.team2850.subsystems.Shooter;
 
+import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.command.PIDSubsystem;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -36,13 +39,18 @@ public class Robot extends IterativeRobot {
 	public static Spark rightDrive3;
 	public static Compressor compressor;
 	public static Solenoid driveshifter;
-//	public static Encoder leftEncoder;
-//	public static Encoder rightEncoder;
 	
-	public static Spark shooterMotor;                //added V1.0
-	public static Encoder shooterEncoder;
-	public static Shooter shooter;
-	public double shooterCurrent = 0;
+	public static Encoder leftEncoder;
+	public static Encoder rightEncoder;
+	
+	public static double pDrive;
+	public static double iDrive;
+	public static double dDrive;
+	
+	public static int timeX;
+	
+	PIDController driveControllerLeft;
+	PIDController driveControllerRight;
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -76,14 +84,33 @@ public class Robot extends IterativeRobot {
     	
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
-       
-    	shooterMotor = new Spark(6);
-    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
-    	shooter = new Shooter(shooterMotor, shooterEncoder);
     	
+    	timeX = 0;
     	
-//    	leftEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
-//    	rightEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
+//    	pDrive = SmartDashboard.getNumber("P",0);
+//    	iDrive = SmartDashboard.getNumber("I",0);
+//    	dDrive = SmartDashboard.getNumber("D",0);
+//    	target = SmartDashboard.getNumber("targetVelocity",0);
+//    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
+    	
+    	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
+    	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
+    	leftEncoder.setDistancePerPulse(.0115);
+    	rightEncoder.setDistancePerPulse(.0115);
+    	
+//    	pDrive = SmartDashboard.getNumber("P",0);
+//    	iDrive =  SmartDashboard.getNumber("I",0);
+//    	dDrive =  SmartDashboard.getNumber("D",0);
+    	
+    	pDrive = .07;
+    	iDrive =  0;
+    	dDrive =  0;
+    	driveControllerLeft = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
+    	driveControllerLeft.setSetpoint(36.0);
+    	driveControllerLeft.setOutputRange(-1, 1);
+    	driveControllerRight = new PIDController(pDrive, iDrive, dDrive, rightEncoder, rightDrive1);
+    	driveControllerRight.setSetpoint(36.0);
+    	driveControllerRight.setOutputRange(-1, 1);
     	
 //    	leftEncoder.setMaxPeriod(.1);
 //    	leftEncoder.setMinRate(10);
@@ -98,32 +125,32 @@ public class Robot extends IterativeRobot {
     }
     
     public void autonomousInit() {
-    	
+    	leftEncoder.reset();
+    	rightEncoder.reset();
     }
 
     public void autonomousPeriodic() {
-//    	leftDrive1.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive1.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	leftDrive2.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive2.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	leftDrive3.set(linearDriveLeft.compute(leftEncoder.getDistance()));
-//    	rightDrive3.set(linearDriveRight.compute(rightEncoder.getDistance()));
-//    	
-//    	
-//    	if(Math.abs(linearDriveRight.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
-//    	{
-//        	rightDrive1.set(0);
-//        	rightDrive2.set(0);
-//        	rightDrive3.set(0);
-//    	}
-//    	if(Math.abs(linearDriveLeft.getTarget()-PID_SETPOINT)<=TARGET_THRESHOLD)
-//    	{
-//    		leftDrive1.set(0);
-//        	leftDrive2.set(0);
-//        	leftDrive3.set(0);
-//    	}
+    	timeX++;
+    	if (timeX == 1) {
+    		driveControllerLeft.enable();
+    		driveControllerRight.enable();
+    	}  	
+    	
+    	leftDrive2.set(driveControllerLeft.get());
+    	leftDrive3.set(driveControllerLeft.get());
+    	rightDrive1.set(-driveControllerLeft.get());
+    	rightDrive2.set(-driveControllerLeft.get());
+    	rightDrive3.set(-driveControllerLeft.get());
+    	
+    	System.out.println("\nRUN TIME #" + timeX + ":");
+    	System.out.println("Error (Left): " + driveControllerLeft.getError());
+    	System.out.println("Error (Right): " + driveControllerRight.getError());
+    	System.out.println("Current PID Result (Left): " + driveControllerLeft.get());
+    	System.out.println("Current PID Result (Right): " + driveControllerRight.get());
+    	System.out.println("Encoder Value (Left): " + leftEncoder.getDistance());
+    	System.out.println("Encoder Value (Right): " + rightEncoder.getDistance());
     }
-
+    
     public void teleopPeriodic() {
     	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
     	drivetrain2.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
@@ -131,21 +158,11 @@ public class Robot extends IterativeRobot {
     		high=false;
     	}
     	
-    	if(xbox1.getRawButton(6)){
+    	if(xbox1.getRawButton(6)) {
     		high=true;
     	}
     	
     	driveshifter.set(high);
-    	
-    	
-    	//SHOOTER SECTION
-    	if(xbox1.getRawButton(0))
-    		shooter.shoot();
-    	
-    	if(xbox1.getRawButton(1))
-    		shooter.shootPID();
-        shooterCurrent = pdp.getCurrent(shooterMotor.getChannel());
-        SmartDashboard.putNumber("Amps", shooterCurrent);
     }
     
     /**
