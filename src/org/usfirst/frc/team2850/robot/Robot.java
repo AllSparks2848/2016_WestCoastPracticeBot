@@ -49,7 +49,8 @@ public class Robot extends IterativeRobot {
 	
 	public static int timeX;
 	
-	PIDController driveController;
+	PIDController driveControllerLeft;
+	PIDController driveControllerRight;
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -92,17 +93,24 @@ public class Robot extends IterativeRobot {
 //    	target = SmartDashboard.getNumber("targetVelocity",0);
 //    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
     	
-    	
     	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
     	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
-    	leftEncoder.setDistancePerPulse(5.03/256);
+    	leftEncoder.setDistancePerPulse(.0115);
+    	rightEncoder.setDistancePerPulse(.0115);
     	
-    	pDrive = SmartDashboard.getNumber("P",0);
-    	iDrive =  SmartDashboard.getNumber("I",0);
-    	dDrive =  SmartDashboard.getNumber("D",0);
-    	driveController = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
-    	driveController.setSetpoint(10000.0);
-    	driveController.setOutputRange(-1, 1);
+//    	pDrive = SmartDashboard.getNumber("P",0);
+//    	iDrive =  SmartDashboard.getNumber("I",0);
+//    	dDrive =  SmartDashboard.getNumber("D",0);
+    	
+    	pDrive = .07;
+    	iDrive =  0;
+    	dDrive =  0;
+    	driveControllerLeft = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
+    	driveControllerLeft.setSetpoint(36.0);
+    	driveControllerLeft.setOutputRange(-1, 1);
+    	driveControllerRight = new PIDController(pDrive, iDrive, dDrive, rightEncoder, rightDrive1);
+    	driveControllerRight.setSetpoint(36.0);
+    	driveControllerRight.setOutputRange(-1, 1);
     	
 //    	leftEncoder.setMaxPeriod(.1);
 //    	leftEncoder.setMinRate(10);
@@ -118,56 +126,43 @@ public class Robot extends IterativeRobot {
     
     public void autonomousInit() {
     	leftEncoder.reset();
+    	rightEncoder.reset();
     }
 
     public void autonomousPeriodic() {
-    	if (leftEncoder.getDistance() < 12.57) {
-    		leftDrive1.set(.25);
-    		leftDrive2.set(.25);
-        	leftDrive3.set(.25);
-        	rightDrive1.set(.25);
-        	rightDrive2.set(.25);
-        	rightDrive3.set(.25);
+    	timeX++;
+    	if (timeX == 1) {
+    		driveControllerLeft.enable();
+    		driveControllerRight.enable();
+    	}  	
+    	
+    	leftDrive2.set(driveControllerLeft.get());
+    	leftDrive3.set(driveControllerLeft.get());
+    	rightDrive1.set(-driveControllerLeft.get());
+    	rightDrive2.set(-driveControllerLeft.get());
+    	rightDrive3.set(-driveControllerLeft.get());
+    	
+    	System.out.println("\nRUN TIME #" + timeX + ":");
+    	System.out.println("Error (Left): " + driveControllerLeft.getError());
+    	System.out.println("Error (Right): " + driveControllerRight.getError());
+    	System.out.println("Current PID Result (Left): " + driveControllerLeft.get());
+    	System.out.println("Current PID Result (Right): " + driveControllerRight.get());
+    	System.out.println("Encoder Value (Left): " + leftEncoder.getDistance());
+    	System.out.println("Encoder Value (Right): " + rightEncoder.getDistance());
+    }
+    
+    public void teleopPeriodic() {
+    	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
+    	drivetrain2.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
+    	if(xbox1.getRawButton(5)){
+    		high=false;
     	}
-    	else {
-    		leftDrive1.set(0);
-    		leftDrive2.set(0);
-        	leftDrive3.set(0);
-        	rightDrive1.set(0);
-        	rightDrive2.set(0);
-        	rightDrive3.set(0);
+    	
+    	if(xbox1.getRawButton(6)) {
+    		high=true;
     	}
-    	System.out.println("Encoder Distance: " + leftEncoder.getDistance());
-//    	timeX++;
-//    	if (timeX == 1) {
-//    		driveController.enable();
-//    	}  	
-//    	
-//    	leftDrive2.set(driveController.get());
-//    	leftDrive3.set(driveController.get());
-//    	rightDrive1.set(driveController.get());
-//    	rightDrive2.set(driveController.get());
-//    	rightDrive3.set(driveController.get());
-//    	
-//    	System.out.println("\nRUN TIME #" + timeX + ":");
-//    	System.out.println("Error: " + driveController.getError());
-//    	System.out.println("Current PID Result: " + driveController.get());
-//    	System.out.println("Encoder Value: " + leftEncoder.getDistance());
-//    
-//    }
-//
-//    public void teleopPeriodic() {
-//    	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
-//    	drivetrain2.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
-//    	if(xbox1.getRawButton(5)){
-//    		high=false;
-//    	}
-//    	
-//    	if(xbox1.getRawButton(6)){
-//    		high=true;
-//    	}
-//    	
-//    	driveshifter.set(high);
+    	
+    	driveshifter.set(high);
     }
     
     /**
