@@ -97,7 +97,7 @@ public class Robot extends IterativeRobot {
     	rightEncoder = new Encoder(3, 2, false, Encoder.EncodingType.k4X);
     	
     	leftEncoder.setDistancePerPulse(0.0115);
-    	rightEncoder.setDistancePerPulse(-0.0115);
+    	rightEncoder.setDistancePerPulse(-0.0117);
     	
 //    	pDrive = SmartDashboard.getNumber("P",0);
 //    	iDrive =  SmartDashboard.getNumber("I",0);
@@ -107,10 +107,10 @@ public class Robot extends IterativeRobot {
     	iDrive =  0;
     	dDrive =  .007;
     	driveControllerLeft = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
-    	driveControllerLeft.setSetpoint(120.0);
+    	driveControllerLeft.setSetpoint(204.0);
     	driveControllerLeft.setOutputRange(-1, 1);
     	driveControllerRight = new PIDController(pDrive, iDrive, dDrive, rightEncoder, rightDrive1);
-    	driveControllerRight.setSetpoint(-120.0);
+    	driveControllerRight.setSetpoint(-204.0);
     	driveControllerRight.setOutputRange(-1, 1);
     	
 //    	leftEncoder.setMaxPeriod(.1);
@@ -128,20 +128,21 @@ public class Robot extends IterativeRobot {
     public void autonomousInit() {
     	leftEncoder.reset();
     	rightEncoder.reset();
+    	timeX = 0;
     }
 
     public void autonomousPeriodic() {
     	timeX++;
-    	if (timeX == 1) {
-    		driveControllerLeft.enable();
-    		driveControllerRight.enable();
-    	}  	
-    	
-    	leftDrive2.set(driveControllerLeft.get());
-    	leftDrive3.set(driveControllerLeft.get());
-//    	rightDrive1.set(-driveControllerLeft.get());
-    	rightDrive2.set(driveControllerRight.get());
-    	rightDrive3.set(driveControllerRight.get());
+//    	if (timeX == 1) {
+//    		driveControllerLeft.enable();
+//    		driveControllerRight.enable();
+//    	}  	
+//    	
+//
+//    	leftDrive2.set(driveControllerLeft.get());
+//    	leftDrive3.set(driveControllerLeft.get());
+//    	rightDrive2.set(driveControllerRight.get());
+//    	rightDrive3.set(driveControllerRight.get());
     	
     	System.out.println("\nRUN TIME #" + timeX + ":");
     	System.out.println("Error (Left): " + driveControllerLeft.getError());
