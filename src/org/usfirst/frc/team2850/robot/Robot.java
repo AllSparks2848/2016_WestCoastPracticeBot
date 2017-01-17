@@ -94,9 +94,10 @@ public class Robot extends IterativeRobot {
 //    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
     	
     	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
-    	rightEncoder = new Encoder(2, 3, false, Encoder.EncodingType.k4X);
-    	rightEncoder.setDistancePerPulse(0.0115);
+    	rightEncoder = new Encoder(3, 2, false, Encoder.EncodingType.k4X);
+    	
     	leftEncoder.setDistancePerPulse(0.0115);
+    	rightEncoder.setDistancePerPulse(-0.0115);
     	
 //    	pDrive = SmartDashboard.getNumber("P",0);
 //    	iDrive =  SmartDashboard.getNumber("I",0);
@@ -104,12 +105,12 @@ public class Robot extends IterativeRobot {
     	
     	pDrive = .07;
     	iDrive =  0;
-    	dDrive =  0;
+    	dDrive =  .007;
     	driveControllerLeft = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
-    	driveControllerLeft.setSetpoint(12.0);
+    	driveControllerLeft.setSetpoint(120.0);
     	driveControllerLeft.setOutputRange(-1, 1);
     	driveControllerRight = new PIDController(pDrive, iDrive, dDrive, rightEncoder, rightDrive1);
-    	driveControllerRight.setSetpoint(12.0);
+    	driveControllerRight.setSetpoint(-120.0);
     	driveControllerRight.setOutputRange(-1, 1);
     	
 //    	leftEncoder.setMaxPeriod(.1);
