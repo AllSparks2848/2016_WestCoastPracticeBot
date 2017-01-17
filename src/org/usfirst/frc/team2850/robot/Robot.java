@@ -2,7 +2,9 @@
 package org.usfirst.frc.team2850.robot;
 
 import org.usfirst.frc.team2850.subsystems.Shooter;
-import org.usfirst.frc.team2850.util.PID;
+
+import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.command.PIDSubsystem;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -35,22 +37,24 @@ public class Robot extends IterativeRobot {
 	public static Spark rightDrive2;
 	public static Spark leftDrive3;
 	public static Spark rightDrive3;
+	
+	public static Spark intake1;
+	public static Spark intake2;
+		
 	public static Compressor compressor;
 	public static Solenoid driveshifter;
+	
 	public static Encoder leftEncoder;
 	public static Encoder rightEncoder;
 	
-	public static Spark shooterMotor;                //added V1.0
-	public static Encoder shooterEncoder;
-	public static Shooter shooter;
-	public double shooterCurrent = 0;
-	public double shooterP = .005;
-	public double shooterI = .005;
-	public double shooterD = .005;
-	public double target = 10;
-	public PID driveTrainPID;
+	public static double pDrive;
+	public static double iDrive;
+	public static double dDrive;
 	
+	public static int timeX;
 	
+	PIDController driveControllerLeft;
+	PIDController driveControllerRight;
 	
     public static boolean high;
     //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
@@ -78,26 +82,42 @@ public class Robot extends IterativeRobot {
     	rightDrive1=new Spark(3);
     	rightDrive2=new Spark(4);
     	rightDrive3=new Spark(5);
-    	
-    	leftEncoder = new Encoder(2,3,false, Encoder.EncodingType.k4X);
-    	rightEncoder = new Encoder(4,5,false, Encoder.EncodingType.k4X);
-    	
+    	intake1 = new Spark(6);
+    	intake2 = new Spark(7);
     	
     	drivetrain= new RobotDrive(leftDrive1, leftDrive2, rightDrive1, rightDrive2);
     	drivetrain2= new RobotDrive(leftDrive3, rightDrive3);
     	
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
-    	driveTrainPID = new PID(shooterP,shooterI,shooterD,target,0);
     	
-       
-//    	shooterMotor = new Spark(6);
-//    	shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k4X); //where are Channels A and B plugged in?
-//    	shooter = new Shooter(shooterMotor, shooterEncoder);
-//    	
+    	timeX = 0;
     	
-//    	leftEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
-//    	rightEncoder = new Encoder(, , false, Encoder.EncodingType.k4X);
+//    	pDrive = SmartDashboard.getNumber("P",0);
+//    	iDrive = SmartDashboard.getNumber("I",0);
+//    	dDrive = SmartDashboard.getNumber("D",0);
+//    	target = SmartDashboard.getNumber("targetVelocity",0);
+//    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
+    	
+    	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
+    	rightEncoder = new Encoder(3, 2, false, Encoder.EncodingType.k4X);
+    	
+    	leftEncoder.setDistancePerPulse(0.0115);
+    	rightEncoder.setDistancePerPulse(-0.0117);
+    	
+//    	pDrive = SmartDashboard.getNumber("P",0);
+//    	iDrive =  SmartDashboard.getNumber("I",0);
+//    	dDrive =  SmartDashboard.getNumber("D",0);
+    	
+    	pDrive = .07;
+    	iDrive =  0;
+    	dDrive =  .007;
+    	driveControllerLeft = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
+    	driveControllerLeft.setSetpoint(204.0);
+    	driveControllerLeft.setOutputRange(-1, 1);
+    	driveControllerRight = new PIDController(pDrive, iDrive, dDrive, rightEncoder, rightDrive1);
+    	driveControllerRight.setSetpoint(-204.0);
+    	driveControllerRight.setOutputRange(-1, 1);
     	
 //    	leftEncoder.setMaxPeriod(.1);
 //    	leftEncoder.setMinRate(10);
@@ -112,31 +132,33 @@ public class Robot extends IterativeRobot {
     }
     
     public void autonomousInit() {
-    	 
-    	
+    	leftEncoder.reset();
+    	rightEncoder.reset();
+    	timeX = 0;
     }
 
     public void autonomousPeriodic() {
-    	leftDrive1.set(driveTrainPID.compute(leftEncoder.getRate()));
-    	leftDrive2.set(driveTrainPID.compute(leftEncoder.getRate()));
-    	leftDrive3.set(driveTrainPID.compute(leftEncoder.getRate()));
-    	rightDrive1.set(driveTrainPID.compute(rightEncoder.getRate()));
-    	rightDrive2.set(driveTrainPID.compute(rightEncoder.getRate()));
-    	rightDrive3.set(driveTrainPID.compute(rightEncoder.getRate()));
+    	timeX++;
+//    	if (timeX == 1) {
+//    		driveControllerLeft.enable();
+//    		driveControllerRight.enable();
+//    	}  	
+//    	
+//
+//    	leftDrive2.set(driveControllerLeft.get());
+//    	leftDrive3.set(driveControllerLeft.get());
+//    	rightDrive2.set(driveControllerRight.get());
+//    	rightDrive3.set(driveControllerRight.get());
     	
-    	
-    	if(driveTrainPID.onTarget()){
-    		rightDrive1.set(0);
-    		rightDrive2.set(0);
-    		rightDrive3.set(0);
-    		leftDrive1.set(0);
-    		leftDrive2.set(0);
-    		leftDrive3.set(0);
-    		
-    	}
-    	
+    	System.out.println("\nRUN TIME #" + timeX + ":");
+    	System.out.println("Error (Left): " + driveControllerLeft.getError());
+    	System.out.println("Error (Right): " + driveControllerRight.getError());
+    	System.out.println("Current PID Result (Left): " + driveControllerLeft.get());
+    	System.out.println("Current PID Result (Right): " + driveControllerRight.get());
+    	System.out.println("Encoder Value (Left): " + leftEncoder.getDistance());
+    	System.out.println("Encoder Value (Right): " + rightEncoder.getDistance());
     }
-
+    
     public void teleopPeriodic() {
     	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
     	drivetrain2.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
@@ -144,12 +166,28 @@ public class Robot extends IterativeRobot {
     		high=false;
     	}
     	
-    	if(xbox1.getRawButton(6)){
+    	if(xbox1.getRawButton(6)) {
     		high=true;
     	}
     	
     	driveshifter.set(high);
-    	
+    
+    	if(xbox1.getRawButton(4)){
+    		intake1.set(.75);
+    		intake2.set(-.75);
+    	}
+    	else{
+    		intake1.set(0);
+    		intake2.set(0);
+    	}
+    	if(xbox1.getRawButton(1)){
+    		intake1.set(-.75);
+    		intake2.set(.75);
+    	}
+    	else{
+    		intake1.set(0);
+    		intake2.set(0);
+    	}
     	
     }
     
