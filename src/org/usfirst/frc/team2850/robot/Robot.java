@@ -5,7 +5,12 @@ import org.usfirst.frc.team2850.subsystems.Shooter;
 
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.command.PIDSubsystem;
-
+import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
+import edu.wpi.first.wpilibj.AnalogGyro;
+import edu.wpi.first.wpilibj.SensorBase;
+import edu.wpi.first.wpilibj.GyroBase;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -46,30 +51,26 @@ public class Robot extends IterativeRobot {
 	public static double pDrive;
 	public static double iDrive;
 	public static double dDrive;
+	public static double pGyro;
+	public static double iGyro;
+	public static double dGyro;
+	
+	public static ADXRS450_Gyro gyro;
 	
 	public static int timeX;
 	
 	PIDController driveControllerLeft;
 	PIDController driveControllerRight;
+	PIDController gyroController;
 	
     public static boolean high;
-    //how many pulses per rotation? how many feet per rotation? (gearing, tires) needs to be decided
-//    public static double DIST_PER_PULSE = .2;
-//   	
-//    public static double Kp = .005; //proportional gain
-//    public static double Ki = .005; //integral gain
-//    public static double Kd = .005; //derivative gain
-//    
-//    public static double PID_SETPOINT = 10.0; //10 feet
-//    public static double TARGET_THRESHOLD = .25; //within .25 ft is ok
-//    
-//   	public static PID linearDriveLeft = new PID(Kp, Ki, Kd, PID_SETPOINT, leftEncoder.getDistance());
-//   	public static PID linearDriveRight = new PID(Kp, Ki, Kd, PID_SETPOINT, rightEncoder.getDistance());
-   	
+    
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
+    
+    
     public void robotInit() {
     	xbox1=new Joystick(0);
     	leftDrive1=new Spark(0);
@@ -85,13 +86,9 @@ public class Robot extends IterativeRobot {
     	compressor = new Compressor();
     	driveshifter=new Solenoid(0);
     	
-    	timeX = 0;
+    	gyro = new ADXRS450_Gyro(); 
     	
-//    	pDrive = SmartDashboard.getNumber("P",0);
-//    	iDrive = SmartDashboard.getNumber("I",0);
-//    	dDrive = SmartDashboard.getNumber("D",0);
-//    	target = SmartDashboard.getNumber("targetVelocity",0);
-//    	pidDrive = new PID(dDrive, iDrive, dDrive, target, 0);
+    	timeX = 0;
     	
     	leftEncoder = new Encoder(1, 0, false, Encoder.EncodingType.k4X);
     	rightEncoder = new Encoder(3, 2, false, Encoder.EncodingType.k4X);
@@ -103,46 +100,52 @@ public class Robot extends IterativeRobot {
 //    	iDrive =  SmartDashboard.getNumber("I",0);
 //    	dDrive =  SmartDashboard.getNumber("D",0);
     	
-    	pDrive = .07;
+    	pDrive = .01;
     	iDrive =  0;
-    	dDrive =  .007;
+    	dDrive =  0.001;
     	driveControllerLeft = new PIDController(pDrive, iDrive, dDrive, leftEncoder, leftDrive1);
-    	driveControllerLeft.setSetpoint(204.0);
+    	driveControllerLeft.setSetpoint(0);
     	driveControllerLeft.setOutputRange(-1, 1);
     	driveControllerRight = new PIDController(pDrive, iDrive, dDrive, rightEncoder, rightDrive1);
-    	driveControllerRight.setSetpoint(-204.0);
+    	driveControllerRight.setSetpoint(0);
     	driveControllerRight.setOutputRange(-1, 1);
     	
-//    	leftEncoder.setMaxPeriod(.1);
-//    	leftEncoder.setMinRate(10);
-//    	leftEncoder.setDistancePerPulse(DIST_PER_PULSE);
-//    	leftEncoder.setReverseDirection(false);
-//    	leftEncoder.setSamplesToAverage(7);
-//    	rightEncoder.setMaxPeriod(.1);
-//    	rightEncoder.setMinRate(10);
-//    	rightEncoder.setDistancePerPulse(DIST_PER_PULSE);
-//    	rightEncoder.setReverseDirection(true);
-//    	rightEncoder.setSamplesToAverage(7);
+    	pGyro = 0.01;
+    	iGyro = 0;
+    	dGyro = 0;
+    	gyroController = new PIDController(pGyro, iGyro, dGyro, gyro, leftDrive1);
+    	gyroController.setSetpoint(90);
+    	driveControllerLeft.setOutputRange(-1, 1);
+    	gyro.calibrate();
     }
     
     public void autonomousInit() {
     	leftEncoder.reset();
     	rightEncoder.reset();
     	timeX = 0;
+    	gyro.calibrate();
     }
 
     public void autonomousPeriodic() {
     	timeX++;
-//    	if (timeX == 1) {
-//    		driveControllerLeft.enable();
-//    		driveControllerRight.enable();
-//    	}  	
-//    	
-//
-//    	leftDrive2.set(driveControllerLeft.get());
-//    	leftDrive3.set(driveControllerLeft.get());
-//    	rightDrive2.set(driveControllerRight.get());
-//    	rightDrive3.set(driveControllerRight.get());
+    	if (timeX == 1) {
+    		driveControllerLeft.enable();
+    		driveControllerRight.enable();
+    		gyroController.enable();
+    	}
+
+    	leftDrive2.set(driveControllerLeft.get());
+    	leftDrive3.set(driveControllerLeft.get());
+    	rightDrive2.set(driveControllerRight.get());
+    	rightDrive3.set(driveControllerRight.get());
+    	
+    	rightDrive1.set(gyroController.get());
+    	rightDrive2.set(gyroController.get());
+    	rightDrive3.set(gyroController.get());
+    	leftDrive1.set(gyroController.get());
+    	leftDrive2.set(gyroController.get());
+    	leftDrive3.set(gyroController.get());
+    	
     	
     	System.out.println("\nRUN TIME #" + timeX + ":");
     	System.out.println("Error (Left): " + driveControllerLeft.getError());
@@ -151,6 +154,10 @@ public class Robot extends IterativeRobot {
     	System.out.println("Current PID Result (Right): " + driveControllerRight.get());
     	System.out.println("Encoder Value (Left): " + leftEncoder.getDistance());
     	System.out.println("Encoder Value (Right): " + rightEncoder.getDistance());
+    	System.out.println("Gyro Angle: " + gyro.getAngle());
+    	System.out.println("Gyro Rate: " + gyro.getRate());
+    	System.out.println("Gyro PID Output: " + gyroPower);
+    	System.out.println("Right Drive 1 Power: " + rightDrive1.get());
     }
     
     public void teleopPeriodic() {
@@ -165,7 +172,9 @@ public class Robot extends IterativeRobot {
     	}
     	
     	driveshifter.set(high);
+    	
     }
+    
     
     /**
      * This function is called periodically during test mode
